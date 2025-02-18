@@ -22,11 +22,6 @@ Route::delete('/ujian/{ujian_id}/topik/{topik_id}', [UpikController::class, 'hap
 Route::resource('ujian', UjianController::class);
 Route::resource('topik', TopikController::class);
 Route::resource('upik', UpikController::class);
-Route::get('/soal', [SoalController::class, 'index'])->name('soal.index');
-Route::get('/soal/data/{topik_id}', [SoalController::class, 'getSoalByTopik'])->name('soal.data');
-Route::post('/soal/tambah', [SoalController::class, 'store'])->name('soal.store');
-Route::put('/soal/{id}/update', [SoalController::class, 'update'])->name('soal.update');
-Route::delete('/soal/{id}/hapus', [SoalController::class, 'destroy'])->name('soal.destroy');
-Route::get('/ujian', [UjianController::class, 'index'])->name('ujian.index');
-Route::get('/ujian/{id}', [UjianController::class, 'show'])->name('ujian.show');
+Route::resource('soal', SoalController::class);
+Route::get('/soal/topik/{id}', [SoalController::class, 'filterByTopik'])->name('soal.filter');
 Route::post('/jawaban/simpan', [JawabanPenggunaController::class, 'simpanJawaban'])->name('jawaban.simpan');
