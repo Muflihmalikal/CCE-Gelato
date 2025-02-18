@@ -19,6 +19,6 @@ class Soal extends Model
 
     public function pilihanJawaban()
     {
-        return $this->hasMany(PilihanJawaban::class);
+        return $this->hasMany(PilihanJawaban::class, 'soal_id');
     }
 }

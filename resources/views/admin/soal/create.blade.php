@@ -30,20 +30,53 @@
         <!-- Pilih Tipe Soal -->
         <div class="mb-3">
             <label for="tipe" class="form-label">Tipe Soal</label>
-            <select class="form-control" name="tipe" required>
+            <select class="form-control" name="tipe" id="tipe" required>
                 <option value="pilihan_ganda">Pilihan Ganda</option>
                 <option value="jawaban_singkat">Jawaban Singkat</option>
                 <option value="essay">Essay</option>
             </select>
         </div>
 
-        <!-- Jawaban Benar -->
-        <div class="mb-3">
-            <label for="jawaban_benar" class="form-label">Jawaban Benar</label>
-            <input type="text" class="form-control" name="jawaban_benar" required>
+        <!-- Pilihan Ganda -->
+        <div id="pilihanGandaFields" style="display: none;">
+            <label class="form-label">Pilihan Jawaban</label>
+            <div class="mb-3">
+                @foreach (['A', 'B', 'C', 'D'] as $index => $label)
+                <div class="input-group mb-2">
+                    <div class="input-group-text">
+                        <input type="radio" name="jawaban_benar_index" value="{{ $index }}">
+                    </div>
+                    <input type="text" class="form-control" name="pilihan[]" placeholder="Pilihan {{ $label }}">
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Jawaban Benar (untuk Essay & Jawaban Singkat) -->
+        <div id="jawabanBenarField">
+            <div class="mb-3">
+                <label for="jawaban_benar" class="form-label">Jawaban Benar</label>
+                <input type="text" class="form-control" name="jawaban_benar">
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Simpan</button>
     </form>
 </div>
+
+<!-- JavaScript untuk Menampilkan Form Pilihan Ganda -->
+<script>
+    document.getElementById('tipe').addEventListener('change', function() {
+        var pilihanGandaFields = document.getElementById('pilihanGandaFields');
+        var jawabanBenarField = document.getElementById('jawabanBenarField');
+
+        if (this.value === 'pilihan_ganda') {
+            pilihanGandaFields.style.display = 'block';
+            jawabanBenarField.style.display = 'none';
+        } else {
+            pilihanGandaFields.style.display = 'none';
+            jawabanBenarField.style.display = 'block';
+        }
+    });
+</script>
 @endsection

@@ -14,7 +14,7 @@ class UjianController extends Controller
     {
         $ujian = Ujian::all();
         $topik = Topik::all();
-        return view('ujian.index', compact('ujian', 'topik'));
+        return view('admin.ujian.index', compact('ujian', 'topik'));
     }
 
     public function store(Request $request)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PilihanJawaban;
 use Illuminate\Http\Request;
 use App\Models\Soal;
 use App\Models\Topik;
@@ -39,19 +40,33 @@ class SoalController extends Controller
             'topik_id' => 'required|exists:topik,id',
             'teks_soal' => 'required|string',
             'tipe' => 'required|in:pilihan_ganda,jawaban_singkat,essay',
-            'jawaban_benar' => 'required|string',
+            'jawaban_benar' => 'nullable|string', // hanya diperlukan jika bukan pilihan ganda
+            'pilihan' => 'nullable|array', // Array pilihan ganda
+            'pilihan.*' => 'required|string', // Setiap pilihan harus berupa string
+            'jawaban_benar_index' => 'nullable|integer|min:0|max:3', // Jawaban benar harus salah satu dari 0-3 (A-D)
         ]);
 
-        Soal::create([
+        // Simpan soal terlebih dahulu
+        $soal = Soal::create([
             'topik_id' => $request->topik_id,
             'teks_soal' => $request->teks_soal,
             'tipe' => $request->tipe,
-            'jawaban_benar' => $request->jawaban_benar,
+            'jawaban_benar' => $request->tipe === 'pilihan_ganda' ? null : $request->jawaban_benar,
         ]);
 
-        return redirect()->route('soal.index')->with('success', 'Soal berhasil ditambahkan');
-    }
+        // Jika soal tipe pilihan ganda, simpan pilihan jawabannya
+        if ($request->tipe === 'pilihan_ganda' && $request->has('pilihan')) {
+            foreach ($request->pilihan as $index => $pilihan) {
+                PilihanJawaban::create([
+                    'soal_id' => $soal->id,
+                    'teks_pilihan' => $pilihan,
+                    'benar' => ($index == $request->jawaban_benar_index) ? 1 : 0, // Jawaban benar sesuai pilihan yang dipilih user
+                ]);
+            }
+        }
 
+        return redirect()->route('soal.index')->with('success', 'Soal berhasil ditambahkan!');
+    }
 
     public function destroy($id)
     {
