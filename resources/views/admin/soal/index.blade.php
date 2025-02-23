@@ -6,9 +6,8 @@
     <div class="row" style="margin: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.2); border-radius: 10px;">
         <div class="mb-3 mb-sm-0 bg-primary" style="padding: 20px; border-radius: 10px 10px 0 0; display: flex; justify-content:space-between;">
             <h3 class="fw-semibold" style="color: white;">Daftar Soal</h3>
-            <a href="{{ route('soal.create') }}" class="btn btn-success">
-                <i class="fas fa-plus" style="margin-right: 5px;"></i>Tambah Soal
-            </a>
+            <button data-bs-toggle="modal" id="open-modal" data-bs-target="#soal-add" class="btn btn-success" style="margin-right: 5px;">
+                <i class="fas fa-plus" style="margin-right: 5px; border-radius: 10px;"></i>Tambah Data</button>
         </div>
 
         <div class="col-lg-12" style="max-width: 100%;">
@@ -20,7 +19,7 @@
                     <select name="topik_id" id="topik_id" class="form-control mb-3" onchange="location = this.value;">
                         <option value="{{ route('soal.index') }}">-- Pilih Topik --</option>
                         @foreach ($topik as $t)
-                        <option value="{{ route('soal.filter', $t->id) }}">{{ $t->nama_topik }}</option>
+                        <option value="{{ route('soal.filter', $t->id) }}" id="{{ $t->id }}">{{ $t->nama_topik }}</option>
                         @endforeach
                     </select>
 
@@ -57,5 +56,7 @@
             </div>
         </div>
     </div>
+
+    @include('admin.soal.create')
 
     @endsection
