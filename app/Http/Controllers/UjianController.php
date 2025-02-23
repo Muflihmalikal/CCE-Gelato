@@ -7,6 +7,7 @@ use App\Models\Ujian;
 use App\Models\Topik;
 use App\Models\Soal;
 use App\Models\Upik;
+use Illuminate\Support\Carbon as SupportCarbon;
 
 class UjianController extends Controller
 {
@@ -55,5 +56,19 @@ class UjianController extends Controller
     {
         $ujian->delete();
         return redirect()->route('ujian.index');
+    }
+    public function tampilkanSoal($ujian_id, $index)
+    {
+        $ujian = Ujian::findOrFail($ujian_id);
+        $soal = Soal::where('ujian_id', $ujian_id)->skip($index)->first();
+
+        if (!$soal) {
+            return redirect('/ujian/selesai')->with('error', 'Soal sudah habis.');
+        }
+
+        $totalSoal = Soal::where('ujian_id', $ujian_id)->count();
+        $waktu_selesai = SupportCarbon::parse($ujian->waktu_selesai)->format('Y-m-d H:i:s');
+
+        return view('ujian.soal', compact('soal', 'ujian_id', 'index', 'totalSoal', 'waktu_selesai'));
     }
 }
