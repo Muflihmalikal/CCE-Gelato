@@ -200,6 +200,14 @@
                     </a>
                     <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
+                            <a href="/admin/siswa" class="sidebar-link">
+                                <div class="round-16 d-flex align-items-center justify-content-center">
+                                    <i class="ti ti-circle"></i>
+                                </div>
+                                <span class="hide-menu">Daftar Siswa</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
                             <a href="ui-accordian.html" class="sidebar-link">
                                 <div class="round-16 d-flex align-items-center justify-content-center">
                                     <i class="ti ti-circle"></i>

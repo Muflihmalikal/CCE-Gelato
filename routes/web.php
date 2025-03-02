@@ -18,6 +18,7 @@ use App\Http\Controllers\UpikController;
 use App\Http\Controllers\JawabanPenggunaController;
 use App\Http\Controllers\TopikController;
 use App\Http\Controllers\NilaiController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', fn() => view('ujian.index'));
 Route::delete('/ujian/{ujian_id}/topik/{topik_id}', [UpikController::class, 'hapusTopik'])->name('ujian.hapusTopik');
@@ -30,3 +31,17 @@ Route::post('/ujian/simpan-jawaban', [UjianController::class, 'simpanJawaban']);
 Route::post('/ujian/selesai', [UjianController::class, 'selesaiUjian']);
 Route::get('/hitung-nilai/{user_id}/{topik_id}', [NilaiController::class, 'hitungNilai']);
 Route::get('/soal/topik/{id}', [SoalController::class, 'filterByTopik'])->name('soal.filter');
+
+// Route user soal
+Route::prefix('user')->group(function(){
+    Route::get('/login', fn() => view('user.auth.login'))->name('soal.login');
+    Route::post('/login', [UserController::class, 'loginSoal'])->name('soal.login.post');
+
+    Route::middleware(['ujian'])->group(function(){
+        Route::get('/detail', [SoalController::class, 'ujianDetail'])->name('soal.detail');
+        Route::get('/soal')->name('soal.index');
+    });
+});
+
+Route::get('/register', [UserController::class, 'create'])->name('user.create');
+Route::post('/register', [UserController::class, 'store'])->name('user.store');

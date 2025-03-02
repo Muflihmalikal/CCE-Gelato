@@ -75,4 +75,12 @@ class SoalController extends Controller
 
         return redirect()->route('soal.index')->with('success', 'Soal berhasil dihapus');
     }
+
+    public function ujianDetail()
+    {
+        $siswa = session('siswa');
+        $ujian = session('ujian');
+        // $soal = Soal::
+        return view('user.soal.detail', compact('siswa', 'ujian'));
+    }
 }
