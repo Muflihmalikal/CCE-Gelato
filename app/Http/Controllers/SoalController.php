@@ -80,7 +80,16 @@ class SoalController extends Controller
     {
         $siswa = session('siswa');
         $ujian = session('ujian');
-        // $soal = Soal::
         return view('user.soal.detail', compact('siswa', 'ujian'));
+    }
+
+    public function ujianMulai($topik_id){
+        $siswa = session('siswa');
+        $ujian = session('ujian');
+        $topik = Topik::with('soal')->where('id', $topik_id)->first();
+        $soal = Soal::with(['topik', 'pilihanJawaban'])->where('topik_id', $topik_id)->first();
+
+        // dd($siswa, $ujian, $topik);
+        return view('user.soal.index', compact('siswa', 'ujian', 'topik', 'soal'));
     }
 }

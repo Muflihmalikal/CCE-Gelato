@@ -39,11 +39,17 @@ class UserController extends Controller
 
     public function loginSoal(Request $request)
     {
+        $validated = $request->validate([
+            
+        ]);
         $siswa = Pengguna::with('kelas')->where('email', $request->email)->first();
+        $password = Pengguna::with('kelas')->where('kata_sandi', $request->password)->first();
         $ujian = Ujian::with('topik')->where('token', $request->token)->first();
         
-        if (!$siswa || !$ujian) {
-            return back()->withErrors(['error' => 'Email atau Token salah!']);
+        if (!$siswa || !$password) {
+            return back()->with('error', 'Email atau Password salah!');
+        }elseif(!$ujian){
+            return back()->with('error', 'Token yang anda masukkan salah!');
         }
         
         session(['siswa' => $siswa, 'ujian' => $ujian]);

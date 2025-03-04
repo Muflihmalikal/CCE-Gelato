@@ -38,10 +38,13 @@
         <form action="{{ route('soal.login.post') }}" method="POST">
             @csrf
 
-            <label for="email" style="color: #333; margin-top: 10px;">Email:</label>
+            <label for="email" style="color: #333; margin-top: 10px;">Email :</label>
             <input type="email" id="email" name="email" required style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #007bff; border-radius: 5px; box-sizing: border-box;">
+            
+            <label for="password" style="color: #333; margin-top: 10px;">Password :</label>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #007bff; border-radius: 5px; box-sizing: border-box;">
 
-            <label for="token" style="color: #333; margin-top: 10px;">Token:</label>
+            <label for="token" style="color: #333; margin-top: 10px;">Token :</label>
             <input type="text" id="token" name="token" required style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #007bff; border-radius: 5px; box-sizing: border-box;">
 
             <input type="submit" value="Daftar" style="background-color: #007bff; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%;">

@@ -39,7 +39,7 @@ Route::prefix('user')->group(function(){
 
     Route::middleware(['ujian'])->group(function(){
         Route::get('/detail', [SoalController::class, 'ujianDetail'])->name('soal.detail');
-        Route::get('/soal')->name('soal.index');
+        Route::get('/soal/{topik_id}', [SoalController::class, 'ujianMulai'])->name('soal.index');
     });
 });
 
