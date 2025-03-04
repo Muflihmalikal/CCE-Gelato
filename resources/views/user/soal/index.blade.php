@@ -1,66 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Soal Index</title>
+    <title>Ujian - {{ $topik->nama_topik }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .ujian-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+        .timer-badge {
+            background-color: rgb(255, 0, 0);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+    </style>
 </head>
 <body>
-    <div></div>
-    <div></div>
-</body>
-<body>
-    <div style="text-align: center;">
-        {{-- <h2>{{ $exam->name }}</h2> --}}
-        <h2>Ujian Matematika</h2>
-        <p>Sisa Waktu: <span id="timer"></span></p>
-    </div>
-    <div style="display: flex; justify-content: space-between;">
-        <div style="width: 60%; border: 1px solid black; padding: 10px;">
-            <h3>Soal </h3>
-            <p></p>
-            {{-- <form action="{{ route('exam.show', $question + 1) }}" method="GET"> --}}
-                <button type="submit">Selanjutnya</button>
-            {{-- </form> --}}
+
+    <div class="container mt-4">
+        <!-- HEADER DETAIL UJIAN -->
+        <div class="ujian-header text-center">
+            <h2 class="text-start">{{ $ujian->judul }}</h2>
+            <h4 class="text-start">Topik: {{ $topik->nama_topik }}</h4>
+            <h5 class="text-end"> {{ $siswa->kelas->nama_kelas }} - {{ $siswa->kelas->asal_sekolah }}</h5>
         </div>
-        <div style="width: 35%; border: 1px solid black; padding: 10px;">
-            <h3>Nomor Soal</h3>
-            {{-- @foreach($questions as $index => $q)
-                <a href="{{ route('exam.show', $index + 1) }}" style="margin: 5px; padding: 5px; border: 1px solid black; display: inline-block;">{{ $index + 1 }}</a>
-            @endforeach --}}
-            {{-- <form action="{{ route('exam.submit') }}" method="POST" style="margin-top: 10px;">
-                @csrf --}}
-                <button type="submit">Selesai</button>
-            {{-- </form> --}}
+        
+        <div class="row">
+            <!-- KOTAK SOAL -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <span>Soal <span id="nomor-soal"></span> dari {{ count($topik->soal) }}</span>
+                        <span id="timer" class="timer-badge">{{ $topik->batas_waktu * 60 }} detik</span>
+                    </div>
+                    <div class="card-body">
+                        <p id="teks-soal"></p>
+                        <form id="form-jawaban">
+                            @csrf
+                            <div id="jawaban-container"></div>
+                            <input type="hidden" name="jawaban" id="jawabanInput">
+                        </form>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <button id="prev-soal" class="btn btn-secondary">Sebelumnya</button>
+                        <button id="next-soal" class="btn btn-primary">Selanjutnya</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KOTAK NOMOR SOAL -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header text-center">Nomor Soal</div>
+                    <div class="card-body text-center" id="nomor-soal-container"></div>
+                    <div class="card-footer text-center">
+                        <button id="selesai-ujian" class="btn btn-success">Selesai Ujian</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    {{-- <script>
-        let duration = {{ $exam->duration }} * 60;
-        function updateTimer() {
-            let minutes = Math.floor(duration / 60);
-            let seconds = duration % 60;
-            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
-            duration--;
-            if (duration < 0) {
-                alert('Waktu habis!');
-                document.forms[1].submit();
+    
+    <script>
+        let soalIndex = 0;
+        let waktuSisa = {{ $topik->batas_waktu * 60 }};
+        let soalData = @json($topik->soal);
+        let jawabanPengguna = {};
+    
+        // Tampilkan soal sesuai index
+        function tampilkanSoal(index) {
+            let soal = soalData[index];
+            $("#nomor-soal").text(index + 1);
+            $("#teks-soal").text(soal.teks_soal);
+            $("#jawaban-container").html("");
+    
+            // Tampilkan pilihan jawaban
+            if (soal.tipe === "pilihan_ganda") {
+                soal.pilihan_jawaban.forEach(pilihan => {
+                    let checked = jawabanPengguna[soal.id] === pilihan.teks_pilihan ? "checked" : "";
+                    $("#jawaban-container").append(`
+                        <div>
+                            <input type="radio" name="jawaban[${soal.id}]" value="${pilihan.teks_pilihan}"
+                            class="jawaban-input" data-soal="${soal.id}" ${checked}>
+                            ${pilihan.teks_pilihan}
+                        </div>
+                    `);
+                });
+            } else {
+                let jawaban = jawabanPengguna[soal.id] || "";
+                $("#jawaban-container").html(`
+                    <input type="text" class="form-control jawaban-input" data-soal="${soal.id}" value="${jawaban}">
+                `);
+            }
+    
+            // Disable tombol jika di soal pertama/terakhir
+            $("#prev-soal").prop("disabled", index === 0);
+            $("#next-soal").prop("disabled", index === soalData.length - 1);
+        }
+    
+        // Simpan jawaban ke object
+        $(document).on("change", ".jawaban-input", function() {
+            let soalId = $(this).data("soal");
+            let jawaban = $(this).val();
+            jawabanPengguna[soalId] = jawaban;
+            $(`#nomor-${soalId}`).removeClass("btn-secondary").addClass("btn-primary");
+        });
+    
+        // Navigasi soal
+        $("#prev-soal").click(() => {
+            if (soalIndex > 0) {
+                soalIndex--;
+                tampilkanSoal(soalIndex);
+            }
+        });
+    
+        $("#next-soal").click(() => {
+            if (soalIndex < soalData.length - 1) {
+                soalIndex++;
+                tampilkanSoal(soalIndex);
+            }
+        });
+    
+        // Tampilkan nomor soal di sidebar
+        soalData.forEach((soal, index) => {
+            $("#nomor-soal-container").append(`
+                <button id="nomor-${soal.id}" class="btn btn-secondary m-1 nomor-soal-btn"
+                data-index="${index}">${index + 1}</button>
+            `);
+        });
+    
+        // Navigasi dengan klik nomor soal
+        $(document).on("click", ".nomor-soal-btn", function() {
+            soalIndex = $(this).data("index");
+            tampilkanSoal(soalIndex);
+        });
+    
+        // Selesai ujian
+        $("#selesai-ujian").click(() => {
+            $("#jawabanInput").val(JSON.stringify(jawabanPengguna));
+    
+            $.post("{{ route('soal.selesai') }}", {
+                _token: "{{ csrf_token() }}",
+                jawaban: JSON.stringify(jawabanPengguna)
+            });
+        });
+
+        function formatWaktu(seconds) {
+            let jam = Math.floor(seconds / 3600);
+            let menit = Math.floor((seconds % 3600) / 60);
+            let detik = seconds % 60;
+
+            if (jam > 0) {
+                return `${jam.toString().padStart(2, '0')} : ${menit.toString().padStart(2, '0')} : ${detik.toString().padStart(2, '0')}`;
+            } else {
+                return `${menit.toString().padStart(2, '0')} : ${detik.toString().padStart(2, '0')}`;
             }
         }
-        setInterval(updateTimer, 1000);
-    </script> --}}
 
-    {{ $ujian->judul }} <br>
-    {{ $topik->nama_topik }} <br>
-    {{ $siswa->nama }} <br>
-    {{ $siswa->kelas->nama_siswa }} <br>
-    {{ $soal->teks_soal }} <br>
-    @foreach ($topik->soal as $item)
-        {{ $item->teks_soal }} <br>
-    @endforeach
-    @foreach ($soal->pilihanJawaban as $jawaban)
-        {{ $jawaban->teks_pilihan }} <br>
-    @endforeach
+        function updateTimer() {
+            waktuSisa--;
+            $("#timer").text(formatWaktu(waktuSisa));
+
+            if (waktuSisa <= 0) {
+                $("#selesai-ujian").click();
+            }
+        }
+    
+        // Load soal pertama
+        $(document).ready(() => {
+            tampilkanSoal(soalIndex);
+            $("#timer").text(formatWaktu(waktuSisa));
+            setInterval(updateTimer, 1000);
+        });
+    </script>
+    
 </body>
 </html>

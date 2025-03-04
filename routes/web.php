@@ -27,8 +27,8 @@ Route::resource('topik', TopikController::class);
 Route::resource('upik', UpikController::class);
 Route::resource('soal', SoalController::class);
 Route::get('/ujian/{ujian_id}/soal/{index}', [UjianController::class, 'tampilkanSoal']);
-Route::post('/ujian/simpan-jawaban', [UjianController::class, 'simpanJawaban']);
-Route::post('/ujian/selesai', [UjianController::class, 'selesaiUjian']);
+// Route::post('/ujian/simpan-jawaban', [UjianController::class, 'simpanJawaban']);
+// Route::post('/ujian/selesai', [UjianController::class, 'selesaiUjian']);
 Route::get('/hitung-nilai/{user_id}/{topik_id}', [NilaiController::class, 'hitungNilai']);
 Route::get('/soal/topik/{id}', [SoalController::class, 'filterByTopik'])->name('soal.filter');
 
@@ -40,6 +40,8 @@ Route::prefix('user')->group(function(){
     Route::middleware(['ujian'])->group(function(){
         Route::get('/detail', [SoalController::class, 'ujianDetail'])->name('soal.detail');
         Route::get('/soal/{topik_id}', [SoalController::class, 'ujianMulai'])->name('soal.index');
+        Route::post('/simpan-jawaban', [UjianController::class, 'simpanJawaban'])->name('soal.simpanJawaban');
+        Route::post('/selesai', [UjianController::class, 'selesaiUjian'])->name('soal.selesai');
     });
 });
 

@@ -83,13 +83,27 @@ class SoalController extends Controller
         return view('user.soal.detail', compact('siswa', 'ujian'));
     }
 
-    public function ujianMulai($topik_id){
+    public function ujianMulai($topik_id, $index = 0)
+    {
         $siswa = session('siswa');
         $ujian = session('ujian');
-        $topik = Topik::with('soal')->where('id', $topik_id)->first();
-        $soal = Soal::with(['topik', 'pilihanJawaban'])->where('topik_id', $topik_id)->first();
+        $topik = Topik::with('soal.pilihanJawaban')->findOrFail($topik_id);
+        $soal = $topik->soal[$index] ?? null;
+        $totalSoal = $topik->soal->count();
+        $jawabanPengguna = session("jawaban_{$ujian->id}") ?? [];
 
-        // dd($siswa, $ujian, $topik);
-        return view('user.soal.index', compact('siswa', 'ujian', 'topik', 'soal'));
+        if (!$soal) {
+            return redirect()->route('ujian.selesai', $topik_id)->with('error', 'Soal tidak ditemukan.');
+        }
+
+        return view('user.soal.index', compact(
+            'siswa',
+            'topik',
+            'soal',
+            'index',
+            'totalSoal',
+            'ujian',
+            'jawabanPengguna'
+        ));
     }
 }
