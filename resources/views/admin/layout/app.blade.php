@@ -12,6 +12,7 @@
     <meta name="author" content="@yield('meta.author', config('variable.AUTHOR'))">
     <meta name="keywords" content="@yield('meta.keywords', config('variable.KEYWORDS'))">
     <meta name="robots" content="index, follow">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!--  Logo Website -->
     <link rel="icon" href="{{ asset('assets/img/cce.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/img/cce.png') }}">
@@ -52,6 +53,8 @@
         </div>
     </div>
 
+
+    @vite(['resources/js/app.js'])
     <!--  Customizer -->
     <!--  Import Js Files -->
     <script src="{{ asset ('dist/libs/jquery/dist/jquery.min.js') }}"></script>

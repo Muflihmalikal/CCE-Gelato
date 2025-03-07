@@ -33,13 +33,15 @@ Route::get('/hitung-nilai/{user_id}/{topik_id}', [NilaiController::class, 'hitun
 Route::get('/soal/topik/{id}', [SoalController::class, 'filterByTopik'])->name('soal.filter');
 
 // Route user soal
-Route::prefix('user')->group(function(){
+Route::prefix('user')->group(function () {
     Route::get('/login', fn() => view('user.auth.login'))->name('soal.login');
     Route::post('/login', [UserController::class, 'loginSoal'])->name('soal.login.post');
+    Route::get('/logout-soal', [UserController::class, 'logoutSoal'])->name('soal.logout');
 
-    Route::middleware(['ujian'])->group(function(){
+
+    Route::middleware(['ujian'])->group(function () {
         Route::get('/detail', [SoalController::class, 'ujianDetail'])->name('soal.detail');
-        Route::get('/soal/{topik_id}', [SoalController::class, 'ujianMulai'])->name('soal.index');
+        Route::get('/soal/{topik_id}', [SoalController::class, 'ujianMulai'])->name('user.soal.index');
         Route::post('/simpan-jawaban', [UjianController::class, 'simpanJawaban'])->name('soal.simpanJawaban');
         Route::post('/selesai', [UjianController::class, 'selesaiUjian'])->name('soal.selesai');
     });
