@@ -54,7 +54,7 @@
     </div>
 
 
-    @vite(['resources/js/app.js'])
+    {{-- @vite(['resources/js/app.js']) --}}
     <!--  Customizer -->
     <!--  Import Js Files -->
     <script src="{{ asset ('dist/libs/jquery/dist/jquery.min.js') }}"></script>

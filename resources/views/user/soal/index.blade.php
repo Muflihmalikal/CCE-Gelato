@@ -80,132 +80,151 @@
     </div>
 
     <script>
-       let soalIndex = 0;
-let soalData = @json($topik->soal) || [];  // Pastikan data soal tidak null
-let jawabanPengguna = JSON.parse(localStorage.getItem("jawabanPengguna_{{ $topik->id }}")) || {};
-let waktuSisa = localStorage.getItem("waktuSisa_{{ $topik->id }}") || {{ $topik->batas_waktu * 60 }};
-waktuSisa = parseInt(waktuSisa);
-
-console.log("Data Soal:", soalData); // Debugging
-
-if (soalData.length === 0) {
-    alert("Tidak ada soal tersedia untuk ujian ini.");
-}
-
-function tampilkanSoal(index) {
-    if (soalData.length === 0) return; // Jangan jalankan jika tidak ada soal
-    
-    let soal = soalData[index];
-
-    $("#nomor-soal").text(index + 1);
-    $("#teks-soal").text(soal.teks_soal);
-    $("#jawaban-container").html("");
-
-    if (soal.tipe === "pilihan_ganda") {
-        soal.pilihan_jawaban.forEach(pilihan => {
-            let checked = jawabanPengguna[soal.id] === pilihan.teks_pilihan ? "checked" : "";
-            $("#jawaban-container").append(`
-                <div>
-                    <input type="radio" name="jawaban[${soal.id}]" value="${pilihan.teks_pilihan}"
-                    class="jawaban-input" data-soal="${soal.id}" ${checked}>
-                    ${pilihan.teks_pilihan}
-                </div>
-            `);
-        });
-    } else {
-        let jawaban = jawabanPengguna[soal.id] || "";
-        $("#jawaban-container").html(`
-            <input type="text" class="form-control jawaban-input" data-soal="${soal.id}" value="${jawaban}">
-        `);
-    }
-
-    $("#prev-soal").prop("disabled", index === 0);
-    $("#next-soal").prop("disabled", index === soalData.length - 1);
-}
-
-$(document).on("change", ".jawaban-input", function() {
-    let soalId = $(this).data("soal");
-    let jawaban = $(this).val();
-    jawabanPengguna[soalId] = jawaban;
-
-    localStorage.setItem("jawabanPengguna_{{ $topik->id }}", JSON.stringify(jawabanPengguna));
-    $(`#nomor-${soalId}`).removeClass("btn-secondary").addClass("btn-primary");
-});
-
-$("#prev-soal").click(() => {
-    if (soalIndex > 0) {
-        soalIndex--;
-        tampilkanSoal(soalIndex);
-    }
-});
-
-$("#next-soal").click(() => {
-    if (soalIndex < soalData.length - 1) {
-        soalIndex++;
-        tampilkanSoal(soalIndex);
-    }
-});
-
-if (soalData.length > 0) {
-    soalData.forEach((soal, index) => {
-        $("#nomor-soal-container").append(`
-            <button id="nomor-${soal.id}" class="btn btn-secondary m-1 nomor-soal-btn"
-            data-index="${index}">${index + 1}</button>
-        `);
-    });
-
-    $(document).on("click", ".nomor-soal-btn", function() {
-        soalIndex = $(this).data("index");
-        tampilkanSoal(soalIndex);
-    });
-
-    tampilkanSoal(soalIndex);
-}
-
-$("#selesai-ujian").click((e) => {
-    e.preventDefault();
-    $("#jawabanInput").val(JSON.stringify(jawabanPengguna));
-
-    $.ajax({
-        url: "{{ route('soal.selesai') }}",
-        type: "POST",
-        data: {
-            _token: "{{ csrf_token() }}",
-            topik_id: "{{ $topik->id }}",
-            jawaban: JSON.stringify(jawabanPengguna)
-        },
-        success: function(response) {
-            localStorage.removeItem("jawabanPengguna_{{ $topik->id }}");
-            localStorage.removeItem("waktuSisa_{{ $topik->id }}");
-            alert("Ujian selesai! Hasil akan diproses.");
-            window.location.href = response.redirect;
+        let soalIndex = 0;
+        let soalData = @json($topik->soal) || [];  // Pastikan data soal tidak null
+        let jawabanPengguna = JSON.parse(localStorage.getItem("jawabanPengguna_{{ $topik->id }}")) || {};
+        let waktuMulaiKey = "waktuMulai_{{ $topik->id }}";
+        let waktuSisaKey = "waktuSisa_{{ $topik->id }}";
+        
+        // Cek apakah waktu mulai sudah tersimpan di localStorage
+        let waktuMulai = localStorage.getItem(waktuMulaiKey);
+        if (!waktuMulai) {
+            // Jika belum ada, simpan waktu mulai sekarang (dalam timestamp)
+            waktuMulai = Date.now();
+            localStorage.setItem(waktuMulaiKey, waktuMulai);
+        } else {
+            waktuMulai = parseInt(waktuMulai);
         }
-    });
-});
-
-function formatWaktu(seconds) {
-    let menit = Math.floor(seconds / 60);
-    let detik = seconds % 60;
-    return `${menit.toString().padStart(2, '0')} : ${detik.toString().padStart(2, '0')}`;
-}
-
-function updateTimer() {
-    if (waktuSisa > 0) {
-        waktuSisa--;
-        localStorage.setItem("waktuSisa_{{ $topik->id }}", waktuSisa);
-        $("#timer").text(formatWaktu(waktuSisa));
-    } else {
-        alert("Waktu habis! Ujian akan dikumpulkan otomatis.");
-        $("#selesai-ujian").click();
-    }
-}
-
-$(document).ready(() => {
-    $("#timer").text(formatWaktu(waktuSisa));
-    setInterval(updateTimer, 1000);
-});
+    
+        // Hitung sisa waktu berdasarkan waktu awal
+        let batasWaktu = {{ $topik->batas_waktu }} * 60 * 1000; // dalam milidetik
+        let waktuSekarang = Date.now();
+        let waktuSisa = Math.max(0, (waktuMulai + batasWaktu - waktuSekarang) / 1000); // Waktu dalam detik
+        waktuSisa = parseInt(waktuSisa);
+    
+        console.log("Data Soal:", soalData); // Debugging
+    
+        if (soalData.length === 0) {
+            alert("Tidak ada soal tersedia untuk ujian ini.");
+        }
+    
+        function tampilkanSoal(index) {
+            if (soalData.length === 0) return; // Jangan jalankan jika tidak ada soal
+            
+            let soal = soalData[index];
+    
+            $("#nomor-soal").text(index + 1);
+            $("#teks-soal").text(soal.teks_soal);
+            $("#jawaban-container").html("");
+    
+            if (soal.tipe === "pilihan_ganda") {
+                soal.pilihan_jawaban.forEach(pilihan => {
+                    let checked = jawabanPengguna[soal.id] === pilihan.teks_pilihan ? "checked" : "";
+                    $("#jawaban-container").append(`
+                        <div>
+                            <input type="radio" name="jawaban[${soal.id}]" value="${pilihan.teks_pilihan}"
+                            class="jawaban-input" data-soal="${soal.id}" ${checked}>
+                            ${pilihan.teks_pilihan}
+                        </div>
+                    `);
+                });
+            } else {
+                let jawaban = jawabanPengguna[soal.id] || "";
+                $("#jawaban-container").html(`
+                    <input type="text" class="form-control jawaban-input" data-soal="${soal.id}" value="${jawaban}">
+                `);
+            }
+    
+            $("#prev-soal").prop("disabled", index === 0);
+            $("#next-soal").prop("disabled", index === soalData.length - 1);
+        }
+    
+        $(document).on("change", ".jawaban-input", function() {
+            let soalId = $(this).data("soal");
+            let jawaban = $(this).val();
+            jawabanPengguna[soalId] = jawaban;
+    
+            localStorage.setItem("jawabanPengguna_{{ $topik->id }}", JSON.stringify(jawabanPengguna));
+            $(`#nomor-${soalId}`).removeClass("btn-secondary").addClass("btn-primary");
+        });
+    
+        $("#prev-soal").click(() => {
+            if (soalIndex > 0) {
+                soalIndex--;
+                tampilkanSoal(soalIndex);
+            }
+        });
+    
+        $("#next-soal").click(() => {
+            if (soalIndex < soalData.length - 1) {
+                soalIndex++;
+                tampilkanSoal(soalIndex);
+            }
+        });
+    
+        if (soalData.length > 0) {
+            soalData.forEach((soal, index) => {
+                $("#nomor-soal-container").append(`
+                    <button id="nomor-${soal.id}" class="btn btn-secondary m-1 nomor-soal-btn"
+                    data-index="${index}">${index + 1}</button>
+                `);
+            });
+    
+            $(document).on("click", ".nomor-soal-btn", function() {
+                soalIndex = $(this).data("index");
+                tampilkanSoal(soalIndex);
+            });
+    
+            tampilkanSoal(soalIndex);
+        }
+    
+        $("#selesai-ujian").click((e) => {
+            e.preventDefault();
+            $("#jawabanInput").val(JSON.stringify(jawabanPengguna));
+    
+            $.ajax({
+                url: "{{ route('soal.selesai') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    topik_id: "{{ $topik->id }}",
+                    jawaban: JSON.stringify(jawabanPengguna)
+                },
+                success: function(response) {
+                    localStorage.removeItem("jawabanPengguna_{{ $topik->id }}");
+                    localStorage.removeItem("waktuSisa_{{ $topik->id }}");
+                    localStorage.removeItem(waktuMulaiKey); // Hapus waktu mulai setelah ujian selesai
+                    alert("Ujian selesai! Hasil akan diproses.");
+                    window.location.href = response.redirect;
+                }
+            });
+        });
+    
+        function formatWaktu(seconds) {
+            let menit = Math.floor(seconds / 60);
+            let detik = seconds % 60;
+            return `${menit.toString().padStart(2, '0')} : ${detik.toString().padStart(2, '0')}`;
+        }
+    
+        function updateTimer() {
+            let waktuSekarang = Date.now();
+            let waktuSisa = Math.max(0, (waktuMulai + batasWaktu - waktuSekarang) / 1000); // Hitung sisa waktu
+    
+            localStorage.setItem(waktuSisaKey, waktuSisa); // Simpan sisa waktu ke localStorage
+            $("#timer").text(formatWaktu(Math.floor(waktuSisa)));
+    
+            if (waktuSisa <= 0) {
+                alert("Waktu habis! Ujian akan dikumpulkan otomatis.");
+                $("#selesai-ujian").click();
+            }
+        }
+    
+        $(document).ready(() => {
+            updateTimer(); // Setel timer saat halaman dimuat
+            setInterval(updateTimer, 1000); // Perbarui setiap detik
+        });
     </script>
-
+    
 </body>
 
 </html>
