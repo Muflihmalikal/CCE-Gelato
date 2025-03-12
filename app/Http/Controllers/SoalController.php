@@ -42,7 +42,7 @@ class SoalController extends Controller
             'tipe' => 'required|in:pilihan_ganda,jawaban_singkat,essay',
             'jawaban_benar' => 'nullable|string', // hanya diperlukan jika bukan pilihan ganda
             'pilihan' => 'nullable|array', // Array pilihan ganda
-            'pilihan.*' => 'required|string', // Setiap pilihan harus berupa string
+            'pilihan.*' => $request->tipe === 'pilihan_ganda' ? 'required|string' : 'nullable',
             'jawaban_benar_index' => 'nullable|integer|min:0|max:3', // Jawaban benar harus salah satu dari 0-3 (A-D)
         ]);
 
